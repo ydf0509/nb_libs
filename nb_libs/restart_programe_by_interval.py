@@ -24,7 +24,7 @@ def restart_program(argv=sys.argv, time_sleep=60 * 60 * 3):
         """
         用法：
 
-        os.execl("/usr/bin/python ", "test.py ",`'i ')这样写是不行的，
+        os.execl("/usr/bin/python ", "test.py ",`'i ')这样写是不行的， 
 
         要这样 
 
