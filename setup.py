@@ -11,7 +11,7 @@ print(filepath)
 
 setup(
     name='nb_libs',  #
-    version="0.1",
+    version="0.2",
     description=('nb_libs'),
     keywords=["nb_libs",],
     # long_description=open('README.md', 'r',encoding='utf8').read(),
@@ -46,7 +46,7 @@ setup(
 python setup.py sdist upload -r pypi
 
 
-python setup.py sdist & twine upload dist/mysql_pool-0.2.tar.gz
+python setup.py sdist & twine upload dist/nb_libs-0.2.tar.gz
 twine upload dist/*
 
 
