@@ -39,6 +39,8 @@ setup(
     ],
     install_requires=[
         'nb_log',
+        'tzlocal',
+        'pytz',
     ]
 )
 """
