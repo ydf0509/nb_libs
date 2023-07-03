@@ -17,6 +17,7 @@ class DatetimeConverter:
 
     """
     DATETIME_FORMATTER = "%Y-%m-%d %H:%M:%S %z"  # 2023-07-03 16:20:21 +0800 ,带时区的可以正确转化到时间戳，没有带时区的字符串，在strptime时候，无法准确转化到时区。
+    DATETIME_FORMATTER_WITH_ZONE = "%Y-%m-%d %H:%M:%S %z"
     DATETIME_FORMATTER_NO_ZONE = "%Y-%m-%d %H:%M:%S"
     DATETIME_FORMATTER2 = "%Y-%m-%d"
     DATETIME_FORMATTER3 = "%H:%M:%S"
@@ -26,7 +27,7 @@ class DatetimeConverter:
                  time_zone: str = get_localzone().zone):
         """
         :param datetimex: 接受时间戳  datatime类型 和 时间字符串 和类对象本身四种类型,如果为None，则默认当前时间。
-        :param time_zone   时区例如 Asia/Shanghai， UTC  UTC+8  GMT+8 等。
+        :param time_zone   时区例如 Asia/Shanghai， UTC  UTC+8  GMT+8  Etc/GMT-8 等。
         """
         init_params = copy.copy(locals())
         init_params.pop('self')
@@ -43,6 +44,9 @@ class DatetimeConverter:
         self.datetime_formatter = datetime_formatter
 
         if isinstance(datetimex, str):
+            # print(self.datetime_formatter)
+            if '%z' in self.datetime_formatter and ('+' not in datetimex or '-' not in datetimex):
+                datetimex = self.add_timezone_to_time_str(datetimex, time_zone)
             self.datetime_obj = datetime.datetime.strptime(datetimex, self.datetime_formatter)
         elif isinstance(datetimex, (int, float)):
             if datetimex < 1:
@@ -57,8 +61,37 @@ class DatetimeConverter:
         else:
             raise ValueError('实例化时候的传参不符合规定')
 
+    @classmethod
+    def add_timezone_to_time_str(cls, datetimex: str, time_zone: str):
+        offset = cls.get_timezone_offset(time_zone)
+        offset_hour = int(offset.total_seconds() // 3600)
+        abs_offset_hour = abs(offset_hour)
+        int_timezone = ''
+        if abs_offset_hour < 10:
+            int_timezone = f'0{abs_offset_hour}00'
+        else:
+            int_timezone = f'{abs_offset_hour}00'
+        if offset_hour < 0:
+            int_timezone = f'-{int_timezone}'
+        else:
+            int_timezone = f'+{int_timezone}'
+        datetimex += f' {int_timezone}'
+        return datetimex
+
+    @classmethod
+    def get_timezone_offset(cls, time_zone: str) -> datetime.timedelta:
+        tz = cls.build_pytz_timezone(time_zone)
+        # 将时区转换为以Etc/GMT+形式表示的时区
+        offset = tz.utcoffset(datetime.datetime.now())
+        return offset
+
     @staticmethod
     def build_pytz_timezone(time_zone: str):
+        """pytz 不支持 GTM+8  UTC+7 这种时区表示方式
+        Etc/GMT-8 就是 GMT+8 代表东8区。
+        """
+        if 'Etc/GMT' in time_zone:
+            return pytz.timezone(time_zone)
         # UTC 负时区对应的 pytz 可以识别的时区
         burden_timezone = 'Etc/GMT+'
         # UTC 正时区对应的 pytz 可以识别的时区
@@ -86,6 +119,7 @@ class DatetimeConverter:
         return self.datetime_obj.strftime(self.DATETIME_FORMATTER2)
 
     def get_str_by_specify_formatter(self, specify_formatter='%Y-%m-%d %H:%M:%S'):
+        print(specify_formatter)
         return self.datetime_obj.strftime(specify_formatter)
 
     @property
@@ -206,15 +240,23 @@ if __name__ == '__main__':
     # print(DatetimeConverter(
     #     datetime.datetime(year=2020, month=5, day=4)).one_hour_ago_converter.one_hour_ago_converter)
 
-    print(DatetimeConverter())
+    # print(DatetimeConverter())
+    #
+    # default_tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
+    # print(default_tz)
+    #
+    # from tzlocal import get_localzone
+    #
+    # local_tz = get_localzone()
+    #
+    # print(local_tz)
+    #
+    # print(DatetimeConverter(time_zone='UTC+8').today_zero_timestamp)
+    # print(DatetimeConverter(time_zone='UTC+8').datetime_obj)
+    # print(DatetimeConverter(time_zone='UTC+8').datetime_str)
 
-    default_tz = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
-    print(default_tz)
+    # print(DatetimeConverter.get_timezone_offset('Asia/Shanghai'))
+    print(DatetimeConverter('2023-05-06 12:12:12'))
 
-    from tzlocal import get_localzone
-
-    local_tz = get_localzone()
-
-    print(local_tz)
-
-    print(DatetimeConverter(time_zone='UTC+8').today_zero_timestamp)
+    print(DatetimeConverter(datetime.datetime.now()))
+    print(DatetimeConverter(datetime.datetime.now(tz=pytz.timezone('Asia/Shanghai'))))
