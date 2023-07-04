@@ -261,4 +261,4 @@ if __name__ == '__main__':
     print(DatetimeConverter('2023-05-06 12:12:12'))
     print(DatetimeConverter())
     print(DatetimeConverter(datetime.datetime.now()))
-    print(DatetimeConverter(datetime.datetime.now(tz=pytz.timezone('Asia/Shanghai'))))
+    print(DatetimeConverter(datetime.datetime.now(tz=pytz.timezone('Etc/GMT+0')),time_zone='UTC+7'))
