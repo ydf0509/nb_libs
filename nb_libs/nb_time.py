@@ -47,13 +47,15 @@ class DatetimeConverter:
             # print(self.datetime_formatter)
             if '%z' in self.datetime_formatter and ('+' not in datetimex or '-' not in datetimex):
                 datetimex = self.add_timezone_to_time_str(datetimex, time_zone)
-            self.datetime_obj = datetime.datetime.strptime(datetimex, self.datetime_formatter)
+            datetime_obj = datetime.datetime.strptime(datetimex, self.datetime_formatter)
+            self.datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
         elif isinstance(datetimex, (int, float)):
             if datetimex < 1:
                 datetimex += 86400
             self.datetime_obj = datetime.datetime.fromtimestamp(datetimex, tz=self.time_zone_obj)  # 时间戳0在windows会出错。
         elif isinstance(datetimex, datetime.datetime):
-            self.datetime_obj = datetimex
+            datetime_obj = datetimex
+            self.datetime_obj = datetime_obj.astimezone(tz=self.time_zone_obj)
         elif isinstance(datetimex, DatetimeConverter):
             self.datetime_obj = datetimex.datetime_obj
         elif datetimex is None:
@@ -257,6 +259,6 @@ if __name__ == '__main__':
 
     # print(DatetimeConverter.get_timezone_offset('Asia/Shanghai'))
     print(DatetimeConverter('2023-05-06 12:12:12'))
-
+    print(DatetimeConverter())
     print(DatetimeConverter(datetime.datetime.now()))
     print(DatetimeConverter(datetime.datetime.now(tz=pytz.timezone('Asia/Shanghai'))))
