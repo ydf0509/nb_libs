@@ -39,7 +39,6 @@ class DatetimeConverter:
         '''
         将 time_zone 转成 pytz 可以识别的对应时区
         '''
-
         self.time_zone_obj = self.build_pytz_timezone(time_zone)
         self.datetime_formatter = datetime_formatter
 
