@@ -18,9 +18,10 @@ def getstatusoutput(cmd):
 
 def do_cmd(cmd_strx, is_print_out=True):
     print(f'执行 {cmd_strx}')
+    t0 = time.time()
     exitcode, data = getstatusoutput(cmd_strx)
     if is_print_out:
-        print('exitcode: ', exitcode)
+        print(f'exitcode: {exitcode}, 耗时 {time.time() -t0} 秒')
         print(data, '\n', '- -' * 20, '\n\n')
     if exitcode == 1 and 'nothing to commit' in data:
         return
