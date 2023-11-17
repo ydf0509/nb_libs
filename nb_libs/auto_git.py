@@ -31,7 +31,7 @@ def do_cmd(cmd_strx, is_print_out=True):
     return exitcode, data
 
 
-class GitDevMerge:
+class GitBranchMerge:
     # MY_BRANCH = 'yangmei/0607ym'   #0707
     # TARGET_BRANCH = 'develop'
     # commit_msg = '特征需求'

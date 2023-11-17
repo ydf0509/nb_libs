@@ -11,7 +11,7 @@ print(filepath)
 
 setup(
     name='nb_libs',  #
-    version="0.3",
+    version="0.4",
     description=('nb_libs'),
     keywords=["nb_libs",],
     # long_description=open('README.md', 'r',encoding='utf8').read(),
