@@ -45,6 +45,7 @@ if __name__ == '__main__':
         r'D:\codes\funboost\funboost',
         r'D:\ProgramData\Miniconda3\Lib\site-packages\celery',
         r'D:\ProgramData\Miniconda3\Lib\site-packages\kombu',
-        r'D:\ProgramData\Miniconda3\Lib\site-packages\nameko'
+        r'D:\ProgramData\Miniconda3\Lib\site-packages\nameko',
+        r'D:\codes\feapder\feapder'
     ]:
         CodeLineStstistics(file_pathx).start_count_all_files_lines()
