@@ -74,4 +74,4 @@ if __name__ == '__main__':
     print(list(PathHelper(r'../').rglob_files('*', is_resolve=True)))
     print(PathHelper(r'D:\codes\nb_libs\nb_libs/dict2json.py').import_as_module().__dict__)
 
-    PathHelper('./').auto_import_files_in_dir()
+    PathHelper(Path(__file__).parent.parent.joinpath('tests/test_import_dir')).auto_import_files_in_dir()
