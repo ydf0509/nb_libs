@@ -60,7 +60,7 @@ class PathHelper(LoggerMixin):
         # except Exception as e:
         #     self.logger.exception(f"Failed to import module '{module_name}': {str(e)}")
 
-    def auto_import_files_in_dir(self, ) -> None:
+    def auto_import_pyfiles_in_dir(self, ) -> None:
         for file_path in self.rglob_files('*.py'):
             self.logger.debug(f'导入模块 {file_path}')
             if Path(file_path) == Path(sys._getframe(1).f_code.co_filename):
@@ -74,4 +74,4 @@ if __name__ == '__main__':
     print(list(PathHelper(r'../').rglob_files('*', is_resolve=True)))
     print(PathHelper(r'D:\codes\nb_libs\nb_libs/dict2json.py').import_as_module().__dict__)
 
-    PathHelper(Path(__file__).parent.parent.joinpath('tests/test_import_dir')).auto_import_files_in_dir()
+    PathHelper(Path(__file__).parent.parent.joinpath('tests/test_import_dir')).auto_import_pyfiles_in_dir()
