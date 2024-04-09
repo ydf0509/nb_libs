@@ -60,8 +60,8 @@ class PathHelper(LoggerMixin):
         # except Exception as e:
         #     self.logger.exception(f"Failed to import module '{module_name}': {str(e)}")
 
-    def auto_import_pyfiles_in_dir(self, ) -> None:
-        for file_path in self.rglob_files('*.py'):
+    def auto_import_pyfiles_in_dir(self, pattern: str='*.py') -> None:
+        for file_path in self.rglob_files(pattern):
             self.logger.debug(f'导入模块 {file_path}')
             if Path(file_path) == Path(sys._getframe(1).f_code.co_filename):
                 self.logger.warning(f'排除导入调用PathHelper的模块自身 {file_path}')  # 否则下面的import这个文件,会造成无限懵逼死循环
