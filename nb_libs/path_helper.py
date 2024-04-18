@@ -8,39 +8,42 @@ from nb_log import LoggerMixin
 
 
 class PathHelper(LoggerMixin):
-    def __init__(self, path: typing.Union[os.PathLike, str]):
-        self.path = Path(path)
+    def __init__(self, path: typing.Union[os.PathLike, str],is_always_resolve=False):
+        """
+        :param path:
+        :param is_always_resolve:  是否总是使用绝对路径.
+        """
+        self._is_always_resolve = is_always_resolve
+        path_obj = Path(path)
+        if is_always_resolve:
+            path_obj = path_obj.resolve()
+        self.path :Path= path_obj
 
-    def rglob_files(self, pattern: str, is_resolve: bool = False) -> typing.List[Path]:
+    def rglob_files(self, pattern: str, ) -> typing.List[Path]:
         entries = self.path.rglob(pattern, )
         files = []
         # 遍历文件夹和文件
         for entry in entries:
-            if is_resolve:
+            if self._is_always_resolve:
                 entry = entry.resolve()
-            # 如果是文件，打印文件路径
             if entry.is_file():
                 # print('file: ', entry)
                 pass
                 files.append(entry.resolve())
-            # 如果是文件夹，递归调用 find_files() 函数
             elif entry.is_dir():
                 pass
                 # print('dir: ', entry)
         return files
 
-    def rglob_dirs(self, pattern: str, is_resolve: bool = False) -> typing.List[Path]:
+    def rglob_dirs(self, pattern: str, ) -> typing.List[Path]:
         entries = self.path.rglob(pattern, )
         dirs = []
-        # 遍历文件夹和文件
         for entry in entries:
-            if is_resolve:
+            if self._is_always_resolve:
                 entry = entry.resolve()
-            # 如果是文件，打印文件路径
             if entry.is_file():
                 # print('file: ', entry)
                 pass
-            # 如果是文件夹，递归调用 find_files() 函数
             elif entry.is_dir():
                 # print('dir: ', entry)
                 pass
@@ -68,10 +71,15 @@ class PathHelper(LoggerMixin):
                 continue
             self.__class__(file_path).import_as_module()
 
+    def __str__(self):
+        return f'''<PathHelper["{self.path}"]>'''
+
 
 if __name__ == '__main__':
     print(type(Path('/')))
-    print(list(PathHelper(r'../').rglob_files('*', is_resolve=True)))
-    print(PathHelper(r'D:\codes\nb_libs\nb_libs/dict2json.py').import_as_module().__dict__)
+    print(PathHelper('./',is_always_resolve=True))
+    print(PathHelper('./',is_always_resolve=True).path)
+    print(list(PathHelper(r'../').rglob_files('*', )))
+    print(PathHelper(r'D:\codes\nb_libs\nb_libs/dict2json.py').import_as_module())
 
     PathHelper(Path(__file__).parent.parent.joinpath('tests/test_import_dir')).auto_import_pyfiles_in_dir()
