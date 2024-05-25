@@ -9,6 +9,7 @@ import shutil
 # Delete previous build
 import time
 
+import git_nb_libs
 shutil.rmtree("dist", ignore_errors=True)
 
 # Build
