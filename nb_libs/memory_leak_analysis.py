@@ -68,12 +68,12 @@ class MemoryLeakAnalysis(LoggerMixinDefaultWithFileHandler):
             type__max_obj_map[typex] = {f'{self.mla_flag}max_len_obj':max_len_obj,f'{self.mla_flag}max_str_len_obj':max_str_len_obj,f'{self.mla_flag}max_size_obj':max_size_obj}
 
         # self.logger.debug(type__max_size_map)
-        self.logger.debug(self._dict_sort(type__max_size_map,f'{self.mla_flag}max_size'))
+        # self.logger.debug(self._dict_sort(type__max_size_map,f'{self.mla_flag}max_size'))
         # self.logger.debug(self._dict_sort(type__max_size_map, f'{self.mla_flag}max_str_len_obj')['__name__'])
-        self.logger.debug(type__max_obj_map['dict'][f'{self.mla_flag}max_str_len_obj'])
-        # for ref in gc.get_referrers(type__max_obj_map['dict'][f'{self.mla_flag}max_size_obj']):
-        #     if self.mla_flag not in str(ref):
-        #         self.logger.debug(ref)
+        self.logger.debug(type__max_obj_map['dict'][f'{self.mla_flag}max_str_len_obj'].keys())
+        for ref in gc.get_referrers(type__max_obj_map['dict'][f'{self.mla_flag}max_str_len_obj']):
+            if self.mla_flag not in str(ref):
+                self.logger.debug(ref)
 
 
     def start(self):

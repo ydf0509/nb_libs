@@ -1,10 +1,14 @@
 import random
 
-long_list= []
-long_dict = {}
+class A():
+    def __init__(self):
+        self.long_list= []
+        self.long_dict = {}
+
+a = A()
 
 for i in range(100000):
-    long_list.append(str(random.random()) + 'many str in list')
-    long_dict[str(random.random())] = str(random.random()) + 'many str in dict'
+    a.long_list.append(str(random.random()) + 'many str in list')
+    a.long_dict[str(random.random())] = str(random.random()) + 'many str in dict'
 
 
