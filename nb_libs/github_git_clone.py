@@ -7,7 +7,9 @@ import nb_log
 import requests
 from parsel import Selector
 
-
+"""
+自动下载和更新某人所有的github代码,仓库太多了,手动下载很麻烦.
+"""
 class GithubCloner(nb_log.LoggerMixin):
     def __init__(self, username: str, total_pages: int = 3, dir='/codes_github'):
         self.username = username
@@ -31,6 +33,7 @@ class GithubCloner(nb_log.LoggerMixin):
         repo_short_name = repo.split('/')[-1]
         # print(repo, repo_short_name)
         repo_full_dir = Path(self.dir).joinpath(repo_short_name).as_posix()
+
         if Path(repo_full_dir).exists():
             cmd = f'cd {repo_full_dir} && git pull'
             os.system(cmd)
@@ -44,6 +47,7 @@ class GithubCloner(nb_log.LoggerMixin):
 
     def start(self):
         self.get_repo_urls()
+        os.system('chcp 65001')  # 先设置utf8编码,避免os.system 乱码
         for repo in self.repo_list:
             self.clone_repo(repo)
 
@@ -51,4 +55,4 @@ class GithubCloner(nb_log.LoggerMixin):
 if __name__ == '__main__':
     GithubCloner('ydf0509', total_pages=2, dir='/codes_github').start()
 
-    # os.system(''' cd /codes_github/nb_log && git pull  ''')
+    # os.system(''' cd /codes_github/nb_log2 && git pull  ''')
