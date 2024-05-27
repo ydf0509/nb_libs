@@ -80,6 +80,16 @@ class BaseJsonAbleModel(BaseModel):
         str1 =  self.__repr_str__(' ')
         return f'<{self.__class__.__name__} id:{id(self)} [{str1}]>'
 
+    @staticmethod
+    def init_by_another_model(model_type:typing.Type[BaseModel],modelx:BaseModel):
+        init_dict = {}
+        for k,v in modelx.dict().items():
+            if k in model_type.__fields__.keys():
+                init_dict[k] = v
+        return model_type(**init_dict)
+
+
+
 
 
 if __name__ == '__main__':

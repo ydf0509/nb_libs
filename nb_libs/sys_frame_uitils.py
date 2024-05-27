@@ -47,7 +47,7 @@ if __name__ == '__main__':
         print(sys._getframe(1).f_lineno)  # 行
         print(sys._getframe(0).f_back.f_lineno)
 
-        ef = EasyFrame(0)
+        ef = EasyFrame()
         print(ef.filename, ef.lineno, ef.func_name, ef.get_jump_line(next_line=True))
 
         ef = EasyFrame(1)
