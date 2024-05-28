@@ -1,6 +1,9 @@
 import inspect
 import sys
 
+'''
+此模块不要导入nb_log,避免互相引用
+'''
 
 def get_current_fun_name():
     """

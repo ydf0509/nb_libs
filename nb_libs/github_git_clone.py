@@ -62,7 +62,9 @@ class GithubCloner(nb_log.LoggerMixin):
         os.system(cmd)
 
     def start_push(self):
-        for folder in Path(self.dir).iterdir():
+        # folder_list = list(Path(self.dir).iterdir())
+        folder_list = list(Path(self.dir).iterdir())
+        for folder in folder_list:
             self.push_one_repo(folder)
 
 
