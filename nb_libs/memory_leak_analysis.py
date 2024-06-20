@@ -49,9 +49,9 @@ class MemoryLeakAnalysis(LoggerMixinDefaultWithFileHandler):
             max_size = 0
             for obj in obj_list:
                 # if  not self._judge_contains_words(obj,[self.mla_flag]):
-                if 'many str in dict' in str(obj):
-                    print(obj.keys())
-                    print(len(obj), len(str(obj)), sys.getsizeof(obj))
+                # if 'many str in ' in str(obj):
+                #     print(obj.keys())
+                #     print(len(obj), len(str(obj)), sys.getsizeof(obj))
                 if self.mla_flag not in str(obj):
                     if self._get_obj_len(obj) > max_len :
                         max_len = self._get_obj_len(obj)

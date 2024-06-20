@@ -11,6 +11,7 @@ import logging
 import win32con
 from nb_libs.memory_leak_analysis import MemoryLeakAnalysis
 from tests.t_mem_leak2 import a
+from tests.t_mem_leak3 import long_list3
 
 logging.captureWarnings(True)
 

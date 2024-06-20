@@ -38,7 +38,7 @@ class GithubCloner(nb_log.LoggerMixin):
             cmd = f'cd {repo_full_dir} && git pull'
             os.system(cmd)
             self.logger.info(cmd)
-            time.sleep(5)
+            time.sleep(1)
         else:
             cmd = f'''cd {self.dir} && git clone {url}'''
             self.logger.warning(cmd)
@@ -53,6 +53,6 @@ class GithubCloner(nb_log.LoggerMixin):
 
 
 if __name__ == '__main__':
-    GithubCloner('ydf0509', total_pages=2, dir='/codes_github').start()
+    GithubCloner('ydf0509', total_pages=2, dir='/codes').start()
 
     # os.system(''' cd /codes_github/nb_log2 && git pull  ''')

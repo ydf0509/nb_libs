@@ -1,6 +1,7 @@
 import importlib.util
 import os
 import sys
+import threading
 import types
 import typing
 from pathlib import Path, WindowsPath, PosixPath
@@ -8,6 +9,8 @@ from nb_log import LoggerMixin
 
 
 class PathHelper(LoggerMixin):
+    _modules_cache = {}
+    _lock = threading.Lock()
     def __init__(self, path: typing.Union[os.PathLike, str],is_always_resolve=False):
         """
         :param path:
@@ -51,13 +54,18 @@ class PathHelper(LoggerMixin):
         return dirs
 
     def import_as_module(self, module_name: str = None) -> types.ModuleType:
-        if module_name is None:
-            module_name = self.path.parent.as_posix().replace('/', '.') + '.' + self.path.stem
+        with self._lock:
+            key = (str(self.path),module_name)
+            if key in self._modules_cache:
+                return  self._modules_cache[key]
+            if module_name is None:
+                module_name = self.path.parent.as_posix().replace('/', '.') + '.' + self.path.stem
 
-        module_spec = importlib.util.spec_from_file_location(module_name, self.path)
-        module = importlib.util.module_from_spec(module_spec)
-        module_spec.loader.exec_module(module)
-        return module
+            module_spec = importlib.util.spec_from_file_location(module_name, self.path)
+            module = importlib.util.module_from_spec(module_spec)
+            module_spec.loader.exec_module(module)
+            self._modules_cache[key] = module
+            return module
         # except FileNotFoundError:
         #     self.logger.exception(f"Module file '{self.path}' not found.")
         # except Exception as e:
