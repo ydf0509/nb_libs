@@ -71,11 +71,8 @@ class GithubCloner(nb_log.LoggerMixin):
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    GithubCloner('ydf0509', total_pages=2, dir='/codes').start()
-=======
+
     # GithubCloner('ydf0509', total_pages=2, dir='/codes_github').start_clone()
     GithubCloner('ydf0509', total_pages=2, dir='/codes').start_push()
->>>>>>> 3b2197271f5240871290ffaa36ed333e9a6a3365
 
     # os.system(''' cd /codes_github/nb_log2 && git pull  ''')
