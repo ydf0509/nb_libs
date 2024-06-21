@@ -1,3 +1,4 @@
+import functools
 import importlib.util
 import os
 import sys
@@ -53,14 +54,34 @@ class PathHelper(LoggerMixin):
                 dirs.append(entry)
         return dirs
 
+    @staticmethod
+    @functools.lru_cache
+    def _get_file__module_map():
+        file__module_map = {}
+        for k,v in sys.modules.items():
+            try:
+                # print(v)
+                # print(v.__file__)
+                file__module_map[Path(v.__file__).resolve().as_posix()] = v
+            except (AttributeError,TypeError):
+                pass
+        print(file__module_map)
+        return file__module_map
+
+
     def import_as_module(self, module_name: str = None) -> types.ModuleType:
         with self._lock:
-            key = (str(self.path),module_name)
+            path_str = self.path.resolve().as_posix()
+            key = (path_str,module_name)
             if key in self._modules_cache:
                 return  self._modules_cache[key]
+            file__module_map = self._get_file__module_map()
+            if path_str in file__module_map:
+                module = file__module_map[path_str]
+                self._modules_cache[key] = module
+                return module
             if module_name is None:
                 module_name = self.path.parent.as_posix().replace('/', '.') + '.' + self.path.stem
-
             module_spec = importlib.util.spec_from_file_location(module_name, self.path)
             module = importlib.util.module_from_spec(module_spec)
             module_spec.loader.exec_module(module)
