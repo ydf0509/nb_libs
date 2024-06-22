@@ -65,7 +65,7 @@ class PathHelper(LoggerMixin):
                 file__module_map[Path(v.__file__).resolve().as_posix()] = v
             except (AttributeError,TypeError):
                 pass
-        print(file__module_map)
+        # print(file__module_map)
         return file__module_map
 
 
