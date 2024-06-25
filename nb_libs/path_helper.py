@@ -55,7 +55,7 @@ class PathHelper(LoggerMixin):
         return dirs
 
     @staticmethod
-    @functools.lru_cache
+    @functools.lru_cache()
     def _get_file__module_map():
         file__module_map = {}
         for k,v in sys.modules.items():
