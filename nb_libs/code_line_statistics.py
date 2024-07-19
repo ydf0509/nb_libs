@@ -43,10 +43,12 @@ class CodeLineStstistics(LoggerMixin):
 if __name__ == '__main__':
     for file_pathx in [
         r'D:\codes\funboost\funboost',
+        r'D:\codes\funboost\test_frame',
         r'D:\ProgramData\Miniconda3\Lib\site-packages\celery',
         r'D:\ProgramData\Miniconda3\Lib\site-packages\kombu',
         r'D:\ProgramData\Miniconda3\Lib\site-packages\nameko',
         r'D:\codes\feapder\feapder',
-        r'D:\codes_aku\feature-services\mixnew'
+        r'D:\codes_aku\feature-services\mixnew',
+        r'D:\ProgramData\Miniconda3\envs\py39b\Lib\site-packages\faststream'
     ]:
         CodeLineStstistics(file_pathx).start_count_all_files_lines()
