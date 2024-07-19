@@ -118,6 +118,11 @@ class PathHelper(LoggerMixin):
             raise ValueError(f'{self.path} not in sys.path')
         return PathHelper(relative_path).path_resolve_str.replace('/', '.').replace('.py', '')
 
+    @staticmethod
+    @functools.lru_cache()
+    def import_module(module_name:str):
+        return importlib.import_module(module_name)
+
     def __str__(self):
         return f'''<PathHelper["{self.path}"]>'''
 
