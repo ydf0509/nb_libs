@@ -74,6 +74,7 @@ class PathHelper(LoggerMixin):
         return file__module_map
 
     def import_as_module(self, module_name: str = None) -> types.ModuleType:
+        """import 当前文件路径"""
         with self._lock:
             path_str = self.path.resolve().as_posix()
             key = (path_str, module_name)
@@ -121,6 +122,7 @@ class PathHelper(LoggerMixin):
     @staticmethod
     @functools.lru_cache()
     def import_module(module_name:str):
+        """import a.b.c 这样"""
         return importlib.import_module(module_name)
 
     def __str__(self):

@@ -49,6 +49,6 @@ if __name__ == '__main__':
         r'D:\ProgramData\Miniconda3\Lib\site-packages\nameko',
         r'D:\codes\feapder\feapder',
         r'D:\codes_aku\feature-services\mixnew',
-        r'D:\ProgramData\Miniconda3\envs\py39b\Lib\site-packages\faststream'
+        r'D:\codes_aku\feature_data_report'
     ]:
         CodeLineStstistics(file_pathx).start_count_all_files_lines()
