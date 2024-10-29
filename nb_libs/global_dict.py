@@ -22,4 +22,4 @@ class GlobalDict:
 
     @classmethod
     def get(cls, k, default=None):
-        return cls.global_dict.get(k, default=default)
+        return cls.global_dict.get(k, default)
