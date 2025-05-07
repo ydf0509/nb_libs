@@ -117,7 +117,9 @@ class PathHelper(LoggerMixin):
                 # print(type(e))
         if relative_path is None:
             raise ValueError(f'{self.path} not in sys.path')
-        return PathHelper(relative_path).path_resolve_str.replace('/', '.').replace('.py', '')
+        module_name= str(relative_path).replace('\\','.').replace('/', '.').replace('.py', '')
+        return module_name
+        # return PathHelper(relative_path).path_resolve_str.replace('/', '.').replace('.py', '')
 
     @staticmethod
     @functools.lru_cache()
