@@ -1,15 +1,16 @@
+# client.py
+import aiohttp
 import asyncio
-import time
+
+session = aiohttp.ClientSession()
 
 
-async def hello():
-    while True:
-        print("async alive")
-        await asyncio.sleep(1)
+async def fetch():
 
-loop = asyncio.get_event_loop()
-loop.create_task(hello())
+        async with session.get('https://httpbin.org/get') as response:
+            print("Status:", response.status)
+            data = await response.json()
+            print("Response JSON keys:", list(data.keys()))
 
-# 错误！
-while True:
-    time.sleep(100)
+# Python ≥3.7
+asyncio.run(fetch())

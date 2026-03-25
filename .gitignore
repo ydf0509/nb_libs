@@ -23,3 +23,5 @@ redis_queue_web/
 not_up_git/
 dist/
 *.egg-info/
+nb_libs/tools/md_dirs/
+tests/md_dirs

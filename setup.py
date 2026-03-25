@@ -12,7 +12,7 @@ print(filepath)
 setup(
     name='nb_libs',  #
     version="2.0",
-    description=('nb_libs 不想分开分发很多个不同功能单独的包,各种小功能杂项放在一起,具体功能看代码.'),
+    description=('nb_libs 不分开分发很多个不同功能单独的包,各种小功能杂项放在一起,具体功能看代码.'),
     keywords=["nb_libs",],
     # long_description=open('README.md', 'r',encoding='utf8').read(),
     long_description_content_type="text/markdown",

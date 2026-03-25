@@ -93,7 +93,7 @@ class BaseJsonAbleModel(BaseModel):
 
 
 if __name__ == '__main__':
-    import nb_log
+    import nb_print
 
 
     class Model1(BaseJsonAbleModel):

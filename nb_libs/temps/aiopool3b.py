@@ -5,86 +5,17 @@ import asyncio
 import weakref
 import concurrent.futures
 import sys
-import atexit
-import threading
 from typing import Callable, Any, Coroutine, List, TypeVar, Optional
+import atexit
 
 T = TypeVar("T")
 logger = logging.getLogger(__name__)
 
-# 全局注册表，跟踪所有活跃的pool实例（用于atexit清理）
+# 全局注册表，跟踪所有活跃的pool实例
 _active_pools: weakref.WeakSet = weakref.WeakSet()
 
-# atexit清理标记
-_atexit_registered = False
-
-
-def _python_exit():
-    """
-    在程序退出时自动等待所有pool的pending任务完成
-    模仿 ThreadPoolExecutor 的自动等待机制
-    
-    注意：这个函数需要重新运行未完成的任务，因为原始的事件循环已经关闭
-    """
-    pools_with_tasks = [pool for pool in list(_active_pools) if len(pool._pending_tasks) > 0]
-    
-    if not pools_with_tasks:
-        return
-    
-    print(f"🔧 atexit: 发现 {len(pools_with_tasks)} 个pool有未完成任务，自动等待...")
-    
-    # 创建新的事件循环（因为旧的已经关闭）
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    
-    try:
-        # 重新启动所有pool并执行剩余任务
-        async def wait_all():
-            for pool in pools_with_tasks:
-                pending_tasks = list(pool._pending_tasks.values())  # 复制任务列表
-                if not pending_tasks:
-                    continue
-                
-                print(f"  重新执行 pool {id(pool)} 的 {len(pending_tasks)} 个任务...")
-                
-                # 重新启动pool（因为在新循环中）
-                pool._is_running = False
-                pool._is_shutdown = False
-                pool._queue = None
-                pool._lock = None
-                pool._workers.clear()
-                pool._worker_busy.clear()
-                pool._pending_futures.clear()
-                pool._pending_tasks.clear()
-                
-                try:
-                    # 重新初始化并启动
-                    await pool._start()
-                    
-                    # 重新提交所有任务
-                    futures = []
-                    for func, args, kwargs in pending_tasks:
-                        future = await pool.submit(func, *args, **kwargs)
-                        futures.append(future)
-                    
-                    # 等待所有任务完成
-                    await asyncio.gather(*futures, return_exceptions=True)
-                    
-                    # 关闭pool
-                    await pool.shutdown(wait=True)
-                    
-                    print(f"  ✅ pool {id(pool)} 的 {len(pending_tasks)} 个任务已完成")
-                except Exception as e:
-                    print(f"  ❌ pool {id(pool)} 执行失败: {e}")
-            
-            print("✅ atexit: 所有任务已完成")
-        
-        loop.run_until_complete(wait_all())
-    finally:
-        try:
-            loop.close()
-        except:
-            pass
+# 信号处理标记
+_signal_handlers_installed = False
 
 
 class SmartAsyncPool:
@@ -110,25 +41,11 @@ class SmartAsyncPool:
         
         # 跟踪所有提交的future，用于自动等待
         self._pending_futures: set[asyncio.Future] = set()
-        
-        # 用于atexit：保存待执行的任务（因为future会失效）
-        # 使用dict以获得O(1)的删除性能
-        self._pending_tasks: dict[int, tuple] = {}  # {id(future): (func, args, kwargs), ...}
-        
         self._background_task: Optional[asyncio.Task] = None
         
-        # 注册到全局池并注册atexit（只注册一次）
+        # 注册到全局池
         if self._auto_shutdown:
             _active_pools.add(self)
-            self._register_atexit()
-
-    def _register_atexit(self):
-        """注册atexit清理函数（全局只注册一次）"""
-        global _atexit_registered
-        if not _atexit_registered:
-            atexit.register(_python_exit)
-            _atexit_registered = True
-            logger.debug("✅ 已注册 atexit 自动清理")
 
     def _ensure_initialized(self):
         """确保在事件循环中初始化asyncio对象"""
@@ -179,7 +96,7 @@ class SmartAsyncPool:
         async with self._lock:
             if task in self._workers:
                 self._workers.remove(task)
-                self._worker_busy.pop(task, None)
+            self._worker_busy.pop(task, None)
 
     def _create_worker(self):
         """在锁的保护下创建worker"""
@@ -212,25 +129,18 @@ class SmartAsyncPool:
 
         if not self._is_running:
             await self._start()
+            # 注册自动清理回调（在事件循环结束前触发）
+            if self._auto_shutdown and self._background_task is None:
+                # self._register_auto_cleanup()
+                pass
+                # atexit.register(self.shutdown)
 
         if future is None:
             future = asyncio.get_running_loop().create_future()
 
-        # 保存任务信息（用于atexit重新执行）
-        # 使用future的id作为key，避免O(n)的list.remove()操作
-        future_id = id(future)
-        task_info = (func, args, kwargs)
-        self._pending_tasks[future_id] = task_info
-
         # 跟踪future，自动清理已完成的
         self._pending_futures.add(future)
-        
-        def on_done(f):
-            self._pending_futures.discard(f)
-            # 任务完成后从pending_tasks中移除（O(1)操作）
-            self._pending_tasks.pop(id(f), None)
-        
-        future.add_done_callback(on_done)
+        future.add_done_callback(lambda f: self._pending_futures.discard(f))
 
         try:
             if block:
@@ -302,6 +212,11 @@ class SmartAsyncPool:
 
     async def __aexit__(self, exc_type, exc, tb):
         await self.shutdown(wait=True)
+    
+
+    
+    # 注意：已删除有问题的 wait_for_all() 方法
+    # 请使用 async_wait_for_all() 代替
     
     async def async_wait_for_all(self) -> None:
         """异步方法：等待所有pending的任务完成"""
@@ -393,8 +308,54 @@ def smart_run(coro, *, debug=False):
     return asyncio.run(wrapper(), debug=debug)
 
 
+async def wait_for_all_aiopools_done():
+    for pool in list(_active_pools):
+        if pool.pending_count > 0:
+            logger.info(f"🔧 Auto-waiting for {pool.pending_count} pending tasks in pool...")
+            await pool.async_wait_for_all()
+
+async def shutdown_all_pools():
+    """关闭所有活跃的pool"""
+    for pool in list(_active_pools):
+        await pool.shutdown(wait=True)
+
+
+async def cleanup_async():
+    """异步清理函数：等待所有pool的pending任务"""
+    logger.info("🔧 Signal received, cleaning up async pools...")
+    for pool in list(_active_pools):
+        if pool.pending_count > 0:
+            logger.info(f"⏳ Waiting for {pool.pending_count} pending tasks in pool...")
+            await pool.async_wait_for_all()
+    logger.info("✅ All pools cleaned up.")
+
+def cleanup_sync_handler(signum=None, frame=None):
+    """同步信号处理器：将清理任务提交到事件循环"""
+    logger.info(f"📡 Received signal {signum}, initiating cleanup...")
+    
+    try:
+        # 尝试获取当前事件循环
+        loop = asyncio.get_running_loop()
+        # 在当前循环中创建清理任务
+        asyncio.create_task(cleanup_async())
+    except RuntimeError:
+        # 没有运行中的事件循环，尝试创建新的
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.run_coroutine_threadsafe(cleanup_async(), loop)
+            else:
+                loop.run_until_complete(cleanup_async())
+        except Exception as e:
+            logger.error(f"❌ Failed to cleanup: {e}")
+    
+
+atexit.register(cleanup_sync_handler)
+
+
+
 if __name__ == "__main__":
-    # ======================
+        # ======================
     # 示例用法
     # ======================
 
@@ -402,9 +363,29 @@ if __name__ == "__main__":
         await asyncio.sleep(0.1)
         print(time.strftime("%H:%M:%S"),x,id(asyncio.current_task()))
         return x * 2
+
+    async def main():
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+        async with SmartAsyncPool(max_concurrency=100, max_queue_size=1000, min_workers=2) as pool:
+            # 提交不阻塞
+            for i in range(90):
+                await pool.submit(sample_task, i)
+            
+            await asyncio.sleep(15)
+
+            for i in range(100):
+                await asyncio.sleep(0.2)
+                await pool.submit(sample_task, i)
+
+            for i in range(100, 1000):
+                await pool.submit(sample_task, i)
+
+            # # 阻塞获取结果
+            # results = [await pool.run(sample_task, i) for i in range(1000, 3000)]
+            # print("Results:", results)
     
     # ========= 测试1：传统方式（手动await） =========
-    print("="*50)
+    print("\n" + "="*50)
     print("测试1：手动await future")
     print("="*50)
     pool1 = SmartAsyncPool(max_concurrency=100, max_queue_size=1000, min_workers=2)
@@ -450,25 +431,25 @@ if __name__ == "__main__":
     
     smart_run(test_smart_run())  # 使用 smart_run 而不是 asyncio.run
     
-    # ========= 测试4：普通 asyncio.run + atexit 自动等待 =========
+    # ========= 测试4：普通 asyncio.run + 自动信号处理 =========
     print("\n" + "="*50)
-    print("测试4：普通 asyncio.run + atexit 自动等待！")
+    print("测试4：使用普通 asyncio.run，完全不手动等待！")
     print("="*50)
-    print("💡 模仿 ThreadPoolExecutor 的 atexit 机制")
-    print()
-    
     pool4 = SmartAsyncPool(max_concurrency=100, min_workers=0, auto_shutdown=True)
-    async def test_atexit_magic():
+    async def test_auto_signal():
         await pool4.submit(sample_task, 40)
         await pool4.submit(sample_task, 41)
         await pool4.submit(sample_task, 42)
         print(f"📊 提交了3个任务，pending count: {pool4.pending_count}")
-        print("✨ 直接退出，不手动等待...")
-        print("✨ atexit 会自动等待所有任务完成！")
-        # 不等待，直接退出
+        print("✨ 没有手动等待，但信号处理器已安装！")
+        print("💡 如果用 Ctrl+C 中断，会自动等待任务完成")
+        
+        # 等一下让任务执行
+        # await asyncio.sleep(0.2)
+        
+        # ✅ 任务应该已经完成了
+        print(f"📊 0.2秒后，pending count: {pool4.pending_count}")
     
-    asyncio.run(test_atexit_magic())
-    print(f"📊 asyncio.run 退出后，pending count: {pool4.pending_count}")
-    print("⏳ 等待程序退出时的 atexit 清理...")
-    # atexit 会在这里自动运行！
+    asyncio.run(test_auto_signal())
+   
 

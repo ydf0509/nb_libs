@@ -43,6 +43,7 @@ class CodeLineStstistics(LoggerMixin):
 if __name__ == '__main__':
     for file_pathx in [
         r'D:\codes\funboost\funboost',
+        r'D:\codes\funboost\funboost\utils\dependency_packages_in_pythonpath',
         r'D:\codes\funboost\test_frame',
         r'D:\ProgramData\Miniconda3\Lib\site-packages\celery',
         r'D:\ProgramData\Miniconda3\Lib\site-packages\kombu',

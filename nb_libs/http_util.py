@@ -1,5 +1,6 @@
 from urllib.parse import parse_qs,parse_qsl,urlencode,quote_plus
 from itertools import chain
+
 class BodyParser(object):
     @classmethod
     def formdata_to_dict(cls, query_string):
